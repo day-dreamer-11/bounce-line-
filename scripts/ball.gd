@@ -6,7 +6,7 @@ const COLOR := Color(0.0667, 0.0667, 0.0667)
 
 
 func _ready() -> void:
-	gravity_scale = 1.0
+	gravity_scale = 0.4
 
 	var mat := PhysicsMaterial.new()
 	mat.bounce = 0.95
