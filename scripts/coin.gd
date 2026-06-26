@@ -6,6 +6,9 @@ const FILL_COLOR := Color(1.0, 0.835, 0.31)
 const RIM_COLOR := Color(0.9, 0.7, 0.1)
 
 
+signal collected
+
+
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	queue_redraw()
@@ -21,4 +24,5 @@ func _draw() -> void:
 
 
 func _on_body_entered(_body: Node2D) -> void:
+	collected.emit()
 	queue_free()
