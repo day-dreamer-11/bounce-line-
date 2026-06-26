@@ -14,7 +14,7 @@ config/name="Bounce Line"
 config/description="A minimalist physics puzzle game."
 run/main_scene="res://scenes/TrailDemo.tscn"
 config/features=PackedStringArray("4.6", "Mobile")
-config/icon=""
+config/icon="res://icon.svg"
 
 [display]
 
