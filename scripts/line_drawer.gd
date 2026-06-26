@@ -14,20 +14,19 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			if event.pressed:
-				_drag_start = event.position
-				_is_dragging = true
-			elif _is_dragging:
-				_is_dragging = false
-				_create_line(_drag_start, event.position)
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_drag_start = get_global_mouse_position()
+			_is_dragging = true
+		elif _is_dragging:
+			_is_dragging = false
+			_create_line(_drag_start, get_global_mouse_position())
 
 
 func _create_line(start_pos: Vector2, end_pos: Vector2) -> void:
 	var direction := end_pos - start_pos
 	if direction.length() < 10.0:
-		return  # too short, ignore
+		return
 
 	var clamped_end := start_pos + direction.normalized() * LINE_LENGTH
 	var midpoint := (start_pos + clamped_end) / 2.0
