@@ -7,6 +7,13 @@ const COLOR := Color(0.0667, 0.0667, 0.0667)
 
 func _ready() -> void:
 	gravity_scale = 1.0
+
+	var mat := PhysicsMaterial.new()
+	mat.bounce = 0.7
+	mat.friction = 0.3
+	physics_material_override = mat
+	continuous_cd = RigidBody2D.CCD_MODE_CAST_RAY
+
 	queue_redraw()
 
 
