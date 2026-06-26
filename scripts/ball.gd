@@ -4,6 +4,8 @@ extends RigidBody2D
 const RADIUS := 55.0
 const COLOR := Color(0.0667, 0.0667, 0.0667)
 
+signal fell_off_screen
+
 
 func _ready() -> void:
 	gravity_scale = 0.4
@@ -15,6 +17,12 @@ func _ready() -> void:
 	continuous_cd = RigidBody2D.CCD_MODE_CAST_RAY
 
 	queue_redraw()
+
+
+func _process(_delta: float) -> void:
+	if global_position.y > 1350.0:
+		fell_off_screen.emit()
+		set_process(false)
 
 
 func _draw() -> void:

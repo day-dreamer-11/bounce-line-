@@ -82,7 +82,7 @@ func _show_victory() -> void:
 	add_child(canvas)
 
 	var bg := ColorRect.new()
-	bg.color = Color(0.98, 0.98, 0.98, 0.9)
+	bg.color = Color(0.98, 0.98, 0.98, 0.92)
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	canvas.add_child(bg)
 
@@ -90,24 +90,21 @@ func _show_victory() -> void:
 	label.text = "Victory"
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 40)
-	label.add_theme_color_override("font_color", Color(0.2, 0.2, 0.2))
+	label.add_theme_font_size_override("font_size", 48)
+	label.add_theme_color_override("font_color", Color(0.0667, 0.0667, 0.0667))
 	label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	canvas.add_child(label)
 
-	var hint := Label.new()
-	hint.text = "tap to restart"
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.add_theme_font_size_override("font_size", 16)
-	hint.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-	hint.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	hint.offset_bottom = -60
-	canvas.add_child(hint)
-
-	canvas.gui_input.connect(_on_victory_click)
-
-
-func _on_victory_click(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed:
+	var btn := Button.new()
+	btn.text = "Play Again"
+	btn.flat = true
+	btn.add_theme_font_size_override("font_size", 24)
+	btn.add_theme_color_override("font_color", Color(0.0667, 0.0667, 0.0667))
+	btn.custom_minimum_size = Vector2(180, 56)
+	btn.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	btn.offset_bottom = -80
+	btn.pressed.connect(func():
 		get_tree().paused = false
 		get_tree().reload_current_scene()
+	)
+	canvas.add_child(btn)

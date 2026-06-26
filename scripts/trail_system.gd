@@ -18,6 +18,7 @@ func _ready() -> void:
 	_stroke_scene = load("res://scenes/Stroke.tscn")
 	_create_borders()
 	_create_start_screen()
+	$Ball.fell_off_screen.connect(_on_game_over)
 
 
 func _create_start_screen() -> void:
@@ -141,3 +142,43 @@ func _spawn_stroke() -> void:
 	add_child(s)
 	_strokes.append(s)
 	s.add_point(get_global_mouse_position(), Time.get_ticks_msec() / 1000.0)
+
+
+func _on_game_over() -> void:
+	get_tree().paused = true
+	_show_result("Game Over")
+
+
+func _show_result(text: String) -> void:
+	var canvas := CanvasLayer.new()
+	canvas.name = "ResultScreen"
+	add_child(canvas)
+
+	var bg := ColorRect.new()
+	bg.color = Color(0.98, 0.98, 0.98, 0.92)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(bg)
+
+	var label := Label.new()
+	label.text = text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 48)
+	label.add_theme_color_override("font_color", Color(0.0667, 0.0667, 0.0667))
+	label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(label)
+
+	var btn := Button.new()
+	btn.text = "Play Again"
+	btn.flat = true
+	btn.add_theme_font_size_override("font_size", 24)
+	btn.add_theme_color_override("font_color", Color(0.0667, 0.0667, 0.0667))
+	btn.custom_minimum_size = Vector2(180, 56)
+	btn.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	btn.offset_bottom = -80
+	btn.pressed.connect(func():
+		get_tree().paused = false
+		get_tree().reload_current_scene()
+	)
+	canvas.add_child(btn)
+
