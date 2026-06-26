@@ -11,6 +11,10 @@ var _line_scene: PackedScene = null
 
 func _ready() -> void:
 	_line_scene = load("res://scenes/Line.tscn")
+	# Pre-create the line instance for instant response
+	_current_line = _line_scene.instantiate()
+	_current_line.visible = false
+	add_child(_current_line)
 
 
 func _input(event: InputEvent) -> void:
@@ -20,10 +24,10 @@ func _input(event: InputEvent) -> void:
 			_is_dragging = true
 		elif _is_dragging:
 			_is_dragging = false
-			_create_line(_drag_start, get_global_mouse_position())
+			_place_line(_drag_start, get_global_mouse_position())
 
 
-func _create_line(start_pos: Vector2, end_pos: Vector2) -> void:
+func _place_line(start_pos: Vector2, end_pos: Vector2) -> void:
 	var direction := end_pos - start_pos
 	if direction.length() < 10.0:
 		return
@@ -32,16 +36,12 @@ func _create_line(start_pos: Vector2, end_pos: Vector2) -> void:
 	var midpoint := (start_pos + clamped_end) / 2.0
 	var angle := direction.angle()
 
-	_remove_current_line()
-
-	var line: Node2D = _line_scene.instantiate()
-	line.position = midpoint
-	line.rotation = angle
-	_current_line = line
-	add_child(line)
+	_current_line.position = midpoint
+	_current_line.rotation = angle
+	_current_line.visible = true
+	_current_line.reset_timer()
 
 
 func _remove_current_line() -> void:
-	if _current_line and is_instance_valid(_current_line):
-		_current_line.queue_free()
-	_current_line = null
+	if _current_line:
+		_current_line.visible = false
