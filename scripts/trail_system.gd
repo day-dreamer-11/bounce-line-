@@ -160,7 +160,8 @@ func _process(_delta: float) -> void:
 	if _is_drawing and not _strokes.is_empty():
 		var pos := get_global_mouse_position()
 		var stroke := _strokes[-1]
-		stroke.add_point(pos, now)
+		if not _segment_hits_ball(pos, stroke):
+			stroke.add_point(pos, now)
 
 	var i := 0
 	while i < _strokes.size():
@@ -177,6 +178,22 @@ func _spawn_stroke() -> void:
 	add_child(s)
 	_strokes.append(s)
 	s.add_point(get_global_mouse_position(), Time.get_ticks_msec() / 1000.0)
+
+
+func _segment_hits_ball(pos: Vector2, stroke: Node2D) -> bool:
+	var last_pos: Vector2 = stroke.get_last_point()
+	var ball_pos: Vector2 = $Ball.global_position
+	var ball_r: float = 60.0  # slightly larger than visual for feel
+
+	var seg: Vector2 = pos - last_pos
+	var to_ball: Vector2 = ball_pos - last_pos
+	var seg_len: float = seg.length()
+	if seg_len < 1.0:
+		return to_ball.length() < ball_r
+
+	var t: float = clampf(to_ball.dot(seg) / (seg_len * seg_len), 0.0, 1.0)
+	var closest: Vector2 = last_pos + seg * t
+	return closest.distance_to(ball_pos) < ball_r
 
 
 func _on_game_over() -> void:

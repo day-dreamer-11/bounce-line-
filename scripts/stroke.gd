@@ -38,6 +38,12 @@ func add_point(pos: Vector2, time: float) -> void:
 	_points.append({position = pos, time = time})
 
 
+func get_last_point() -> Vector2:
+	if _points.is_empty():
+		return Vector2.ZERO
+	return _points[-1].position
+
+
 ## Returns true when all points expired.
 func update_trail(now: float) -> bool:
 	# Remove expired points
