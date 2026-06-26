@@ -70,3 +70,44 @@ func _find_valid_position(bounds: Vector2, ball_pos: Vector2, existing: Array[Ve
 func _on_coin_collected() -> void:
 	_collected += 1
 	_label.text = "Collected  %d / %d" % [_collected, COIN_COUNT]
+	if _collected >= COIN_COUNT:
+		_show_victory()
+
+
+func _show_victory() -> void:
+	get_tree().paused = true
+
+	var canvas := CanvasLayer.new()
+	canvas.name = "VictoryUI"
+	add_child(canvas)
+
+	var bg := ColorRect.new()
+	bg.color = Color(0.98, 0.98, 0.98, 0.9)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(bg)
+
+	var label := Label.new()
+	label.text = "Victory"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 40)
+	label.add_theme_color_override("font_color", Color(0.2, 0.2, 0.2))
+	label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(label)
+
+	var hint := Label.new()
+	hint.text = "tap to restart"
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_font_size_override("font_size", 16)
+	hint.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	hint.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	hint.offset_bottom = -60
+	canvas.add_child(hint)
+
+	canvas.gui_input.connect(_on_victory_click)
+
+
+func _on_victory_click(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed:
+		get_tree().paused = false
+		get_tree().reload_current_scene()
