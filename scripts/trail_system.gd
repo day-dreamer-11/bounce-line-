@@ -21,6 +21,34 @@ func _ready() -> void:
 	$Ball.fell_off_screen.connect(_on_game_over)
 
 
+func _make_button(text: String, font_size: int, w: float, h: float) -> Button:
+	var btn := Button.new()
+	btn.text = text
+	btn.flat = false
+	btn.add_theme_font_size_override("font_size", font_size)
+	btn.add_theme_color_override("font_color", Color(0.0667, 0.0667, 0.0667))
+	btn.custom_minimum_size = Vector2(w, h)
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(1.0, 1.0, 1.0, 1.0)
+	style.border_width_left = 2
+	style.border_width_right = 2
+	style.border_width_top = 2
+	style.border_width_bottom = 2
+	style.border_color = Color(0.0667, 0.0667, 0.0667)
+	style.corner_radius_top_left = 12
+	style.corner_radius_top_right = 12
+	style.corner_radius_bottom_left = 12
+	style.corner_radius_bottom_right = 12
+	btn.add_theme_stylebox_override("normal", style)
+
+	var hover := style.duplicate()
+	hover.bg_color = Color(0.95, 0.95, 0.95)
+	btn.add_theme_stylebox_override("hover", hover)
+
+	return btn
+
+
 func _create_start_screen() -> void:
 	var canvas := CanvasLayer.new()
 	canvas.name = "StartScreen"
@@ -31,18 +59,25 @@ func _create_start_screen() -> void:
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	canvas.add_child(bg)
 
-	var btn := Button.new()
-	btn.text = "Start"
-	btn.flat = true
-	btn.add_theme_font_size_override("font_size", 36)
-	btn.add_theme_color_override("font_color", Color(0.0667, 0.0667, 0.0667))
-	btn.custom_minimum_size = Vector2(240, 80)
-	btn.set_anchors_preset(Control.PRESET_CENTER)
+	var vbox := VBoxContainer.new()
+	vbox.set_anchors_preset(Control.PRESET_CENTER)
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 32)
+	canvas.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "弹弹球"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 52)
+	title.add_theme_color_override("font_color", Color(0.0667, 0.0667, 0.0667))
+	vbox.add_child(title)
+
+	var btn := _make_button("开始游戏", 28, 220, 72)
 	btn.pressed.connect(func():
 		canvas.queue_free()
 		_start_countdown()
 	)
-	canvas.add_child(btn)
+	vbox.add_child(btn)
 
 
 func _start_countdown() -> void:
@@ -146,7 +181,7 @@ func _spawn_stroke() -> void:
 
 func _on_game_over() -> void:
 	get_tree().paused = true
-	_show_result("Game Over")
+	_show_result("游戏结束")
 
 
 func _show_result(text: String) -> void:
@@ -159,26 +194,22 @@ func _show_result(text: String) -> void:
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	canvas.add_child(bg)
 
+	var vbox := VBoxContainer.new()
+	vbox.set_anchors_preset(Control.PRESET_CENTER)
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 28)
+	canvas.add_child(vbox)
+
 	var label := Label.new()
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 48)
 	label.add_theme_color_override("font_color", Color(0.0667, 0.0667, 0.0667))
-	label.set_anchors_preset(Control.PRESET_FULL_RECT)
-	canvas.add_child(label)
+	vbox.add_child(label)
 
-	var btn := Button.new()
-	btn.text = "Play Again"
-	btn.flat = true
-	btn.add_theme_font_size_override("font_size", 24)
-	btn.add_theme_color_override("font_color", Color(0.0667, 0.0667, 0.0667))
-	btn.custom_minimum_size = Vector2(180, 56)
-	btn.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	btn.offset_bottom = -80
+	var btn := _make_button("再来一次", 24, 200, 60)
 	btn.pressed.connect(func():
 		get_tree().paused = false
 		get_tree().reload_current_scene()
 	)
-	canvas.add_child(btn)
-
+	vbox.add_child(btn)

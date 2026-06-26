@@ -23,9 +23,9 @@ func _create_ui() -> void:
 	add_child(canvas)
 
 	_label = Label.new()
-	_label.text = "Collected  0 / %d" % COIN_COUNT
-	_label.add_theme_font_size_override("font_size", 18)
-	_label.add_theme_color_override("font_color", Color(0.2, 0.2, 0.2))
+	_label.text = "0 / %d" % COIN_COUNT
+	_label.add_theme_font_size_override("font_size", 40)
+	_label.add_theme_color_override("font_color", Color(0.0667, 0.0667, 0.0667))
 	_label.position = Vector2(24, 24)
 	canvas.add_child(_label)
 
@@ -69,7 +69,7 @@ func _find_valid_position(bounds: Vector2, ball_pos: Vector2, existing: Array[Ve
 
 func _on_coin_collected() -> void:
 	_collected += 1
-	_label.text = "Collected  %d / %d" % [_collected, COIN_COUNT]
+	_label.text = "%d / %d" % [_collected, COIN_COUNT]
 	if _collected >= COIN_COUNT:
 		_show_victory()
 
@@ -86,25 +86,41 @@ func _show_victory() -> void:
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	canvas.add_child(bg)
 
+	var vbox := VBoxContainer.new()
+	vbox.set_anchors_preset(Control.PRESET_CENTER)
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 28)
+	canvas.add_child(vbox)
+
 	var label := Label.new()
-	label.text = "Victory"
+	label.text = "胜利"
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 48)
 	label.add_theme_color_override("font_color", Color(0.0667, 0.0667, 0.0667))
-	label.set_anchors_preset(Control.PRESET_FULL_RECT)
-	canvas.add_child(label)
+	vbox.add_child(label)
 
 	var btn := Button.new()
-	btn.text = "Play Again"
-	btn.flat = true
+	btn.text = "再来一次"
+	btn.flat = false
 	btn.add_theme_font_size_override("font_size", 24)
 	btn.add_theme_color_override("font_color", Color(0.0667, 0.0667, 0.0667))
-	btn.custom_minimum_size = Vector2(180, 56)
-	btn.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	btn.offset_bottom = -80
+	btn.custom_minimum_size = Vector2(200, 60)
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(1.0, 1.0, 1.0, 1.0)
+	style.border_width_left = 2
+	style.border_width_right = 2
+	style.border_width_top = 2
+	style.border_width_bottom = 2
+	style.border_color = Color(0.0667, 0.0667, 0.0667)
+	style.corner_radius_top_left = 12
+	style.corner_radius_top_right = 12
+	style.corner_radius_bottom_left = 12
+	style.corner_radius_bottom_right = 12
+	btn.add_theme_stylebox_override("normal", style)
+
 	btn.pressed.connect(func():
 		get_tree().paused = false
 		get_tree().reload_current_scene()
 	)
-	canvas.add_child(btn)
+	vbox.add_child(btn)
