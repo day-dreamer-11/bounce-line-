@@ -4,7 +4,7 @@ extends Node2D
 const COIN_COUNT := 5
 const COIN_RADIUS := 18.0
 const EDGE_MARGIN := 80.0
-const BALL_SAFE_DIST := 120.0
+const BALL_SAFE_DIST := 200.0
 
 var _collected := 0
 var _label: Label = null
@@ -46,7 +46,7 @@ func _spawn_coins() -> void:
 
 func _find_valid_position(bounds: Vector2, ball_pos: Vector2, existing: Array[Vector2]) -> Vector2:
 	var margin := EDGE_MARGIN + COIN_RADIUS
-	var min_spacing := COIN_RADIUS * 3.0
+	var min_spacing := COIN_RADIUS * 4.0
 
 	for _attempt in 200:
 		var x := randf_range(margin, bounds.x - margin)
