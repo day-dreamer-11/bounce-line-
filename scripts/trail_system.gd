@@ -19,27 +19,26 @@ func _ready() -> void:
 
 
 func _create_borders() -> void:
-	var size := get_viewport().get_visible_rect().size
-	var thick := 20.0
+	var w := 720.0
+	var h := 1280.0
+	var t := 40.0
 
-	var walls := {
-		"top":    Rect2(Vector2(0, -thick),            Vector2(size.x, thick)),
-		"bottom": Rect2(Vector2(0, size.y),             Vector2(size.x, thick)),
-		"left":   Rect2(Vector2(-thick, 0),             Vector2(thick, size.y)),
-		"right":  Rect2(Vector2(size.x, 0),             Vector2(thick, size.y)),
-	}
+	_add_wall("Top",    Vector2(w / 2, -t / 2),       Vector2(w + t * 2, t))
+	_add_wall("Bottom", Vector2(w / 2, h + t / 2),     Vector2(w + t * 2, t))
+	_add_wall("Left",   Vector2(-t / 2, h / 2),        Vector2(t, h + t * 2))
+	_add_wall("Right",  Vector2(w + t / 2, h / 2),     Vector2(t, h + t * 2))
 
-	for key in walls:
-		var r := walls[key]
-		var body := StaticBody2D.new()
-		body.name = "Wall_" + key
-		var shape := CollisionShape2D.new()
-		var rect := RectangleShape2D.new()
-		rect.size = r.size
-		shape.shape = rect
-		shape.position = r.position + r.size / 2.0
-		body.add_child(shape)
-		add_child(body)
+
+func _add_wall(name: String, pos: Vector2, rect_size: Vector2) -> void:
+	var body := StaticBody2D.new()
+	body.name = "Wall_" + name
+	body.position = pos
+	var shape := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = rect_size
+	shape.shape = rect
+	body.add_child(shape)
+	add_child(body)
 
 
 func _input(event: InputEvent) -> void:
