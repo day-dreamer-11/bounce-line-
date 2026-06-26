@@ -4,8 +4,10 @@ extends Node2D
 const LINE_WIDTH := 16.0
 const POINT_LIFETIME := 2.0
 const MIN_SAMPLE_DIST := 6.0
+const MAX_TOTAL_DIST := 400.0
 
 var _points: Array[Dictionary] = []
+var _total_dist: float = 0.0
 
 @onready var _line: Line2D = $Line2D
 @onready var _collision: CollisionPolygon2D = $StaticBody2D/CollisionPolygon2D
@@ -29,15 +31,22 @@ func _ready() -> void:
 
 
 func add_point(pos: Vector2, time: float) -> void:
-	if not _points.is_empty() and pos.distance_to(_points[-1].position) < MIN_SAMPLE_DIST:
-		return
+	if not _points.is_empty():
+		if pos.distance_to(_points[-1].position) < MIN_SAMPLE_DIST:
+			return
+		_total_dist += pos.distance_to(_points[-1].position)
 	_points.append({position = pos, time = time})
 
 
 ## Returns true when all points expired.
 func update_trail(now: float) -> bool:
+	# Remove expired points
 	while not _points.is_empty() and now - _points[0].time > POINT_LIFETIME:
-		_points.pop_front()
+		_pop_front()
+
+	# Limit total length — oldest segment gets trimmed first
+	while _total_dist > MAX_TOTAL_DIST and _points.size() >= 2:
+		_pop_front()
 
 	if _points.is_empty():
 		return true
@@ -84,3 +93,11 @@ func _build_collision_polygon() -> void:
 	var poly := left + right
 	_collision.polygon = poly
 	_collision.disabled = false
+
+
+func _pop_front() -> void:
+	if _points.size() < 2:
+		_points.pop_front()
+		return
+	_total_dist -= _points[0].position.distance_to(_points[1].position)
+	_points.pop_front()
