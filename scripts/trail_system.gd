@@ -14,7 +14,7 @@ var _points: Array[Dictionary] = []
 
 
 func _ready() -> void:
-	_create_background()
+	RenderingServer.set_default_clear_color(Color(0.98, 0.98, 0.98))
 
 	_line.clear_points()
 	_line.width = LINE_WIDTH
@@ -22,18 +22,6 @@ func _ready() -> void:
 	_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
 	_line.end_cap_mode = Line2D.LINE_CAP_ROUND
 	_line.joint_mode = Line2D.LINE_JOINT_ROUND
-
-
-func _create_background() -> void:
-	var canvas := CanvasLayer.new()
-	canvas.name = "UI"
-	add_child(canvas)
-
-	var bg := ColorRect.new()
-	bg.name = "Background"
-	bg.color = Color(0.98, 0.98, 0.98)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	canvas.add_child(bg)
 
 
 func _input(event: InputEvent) -> void:
