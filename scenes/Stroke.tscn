@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=2 format=3 uid="uid://stroke001"]
 
 [ext_resource type="Script" path="res://scripts/stroke.gd" id="1_stroke"]
 
@@ -6,3 +6,7 @@
 script = ExtResource("1_stroke")
 
 [node name="Line2D" type="Line2D" parent="."]
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D"]
