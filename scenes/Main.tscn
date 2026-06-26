@@ -1,0 +1,14 @@
+[gd_scene load_steps=1 format=3]
+
+[node name="Main" type="Node2D"]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(360, 640)
+
+[node name="Ball" type="Node2D" parent="."]
+
+[node name="CoinContainer" type="Node2D" parent="."]
+
+[node name="LineContainer" type="Node2D" parent="."]
+
+[node name="UI" type="CanvasLayer" parent="."]
