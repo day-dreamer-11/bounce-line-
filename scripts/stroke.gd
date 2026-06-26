@@ -22,6 +22,11 @@ func _ready() -> void:
 	_collision.polygon = PackedVector2Array()
 	_collision.disabled = true
 
+	var mat := PhysicsMaterial.new()
+	mat.bounce = 1.0
+	mat.friction = 0.0
+	$StaticBody2D.physics_material_override = mat
+
 
 func add_point(pos: Vector2, time: float) -> void:
 	if not _points.is_empty() and pos.distance_to(_points[-1].position) < MIN_SAMPLE_DIST:

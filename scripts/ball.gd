@@ -9,8 +9,8 @@ func _ready() -> void:
 	gravity_scale = 1.0
 
 	var mat := PhysicsMaterial.new()
-	mat.bounce = 0.7
-	mat.friction = 0.3
+	mat.bounce = 0.95
+	mat.friction = 0.05
 	physics_material_override = mat
 	continuous_cd = RigidBody2D.CCD_MODE_CAST_RAY
 
