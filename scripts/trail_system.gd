@@ -187,6 +187,7 @@ func _on_game_over() -> void:
 func _show_result(text: String) -> void:
 	var canvas := CanvasLayer.new()
 	canvas.name = "ResultScreen"
+	canvas.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(canvas)
 
 	var bg := ColorRect.new()

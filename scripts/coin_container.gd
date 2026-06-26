@@ -79,6 +79,7 @@ func _show_victory() -> void:
 
 	var canvas := CanvasLayer.new()
 	canvas.name = "VictoryUI"
+	canvas.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(canvas)
 
 	var bg := ColorRect.new()
