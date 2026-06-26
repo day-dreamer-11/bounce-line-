@@ -2,7 +2,7 @@ extends Node2D
 ## Spawns 5 coins at random non-overlapping positions.
 
 const COIN_COUNT := 5
-const COIN_RADIUS := 16.0
+const COIN_RADIUS := 18.0
 const EDGE_MARGIN := 80.0
 const BALL_SAFE_DIST := 120.0
 
