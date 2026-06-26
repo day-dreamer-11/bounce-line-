@@ -7,9 +7,9 @@ const MIN_SAMPLE_DIST := 6.0
 
 var _is_drawing := false
 var _game_started := false
+var _countdown_active := false
 var _stroke_scene: PackedScene = null
 
-## Active strokes — each manages its own Line2D and point lifetimes.
 var _strokes: Array[Node2D] = []
 
 
@@ -39,9 +39,48 @@ func _create_start_screen() -> void:
 	btn.set_anchors_preset(Control.PRESET_CENTER)
 	btn.pressed.connect(func():
 		canvas.queue_free()
-		_game_started = true
+		_start_countdown()
 	)
 	canvas.add_child(btn)
+
+
+func _start_countdown() -> void:
+	_countdown_active = true
+	var ball: RigidBody2D = $Ball
+	ball.freeze = true
+
+	var cc := CanvasLayer.new()
+	cc.name = "Countdown"
+	add_child(cc)
+
+	var label := Label.new()
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 120)
+	label.add_theme_color_override("font_color", Color(0.0667, 0.0667, 0.0667, 0.2))
+	label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cc.add_child(label)
+
+	_show_count(label, 3, ball, cc)
+
+
+func _show_count(label: Label, n: int, ball: RigidBody2D, canvas: CanvasLayer) -> void:
+	if n <= 0:
+		canvas.queue_free()
+		ball.freeze = false
+		_countdown_active = false
+		_game_started = true
+		return
+
+	label.text = str(n)
+	label.modulate.a = 0.2
+
+	var tw := create_tween()
+	tw.tween_property(label, "modulate:a", 0.45, 0.5)
+	tw.tween_property(label, "modulate:a", 0.2, 0.5)
+	tw.tween_callback(func():
+		_show_count(label, n - 1, ball, canvas)
+	)
 
 
 func _create_borders() -> void:
@@ -87,7 +126,6 @@ func _process(_delta: float) -> void:
 		var stroke := _strokes[-1]
 		stroke.add_point(pos, now)
 
-	# Update all strokes, remove expired ones
 	var i := 0
 	while i < _strokes.size():
 		var s := _strokes[i]
