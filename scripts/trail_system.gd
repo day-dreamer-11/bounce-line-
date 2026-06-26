@@ -24,7 +24,6 @@ func _create_borders() -> void:
 	var t := 40.0
 
 	_add_wall("Top",    Vector2(w / 2, -t / 2),       Vector2(w + t * 2, t))
-	_add_wall("Bottom", Vector2(w / 2, h + t / 2),     Vector2(w + t * 2, t))
 	_add_wall("Left",   Vector2(-t / 2, h / 2),        Vector2(t, h + t * 2))
 	_add_wall("Right",  Vector2(w + t / 2, h / 2),     Vector2(t, h + t * 2))
 
