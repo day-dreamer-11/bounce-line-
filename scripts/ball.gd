@@ -1,7 +1,7 @@
 extends RigidBody2D
 ## Black ball — falls under gravity, bounces off lines, collects coins.
 
-const RADIUS := 28.0
+const RADIUS := 40.0
 const COLOR := Color(0.0667, 0.0667, 0.0667)
 
 
