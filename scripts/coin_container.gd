@@ -1,5 +1,5 @@
 extends Node2D
-## Coin spawner + modern HUD card + victory screen.
+## Spawns 5 coins at random positions + shows collection counter.
 
 const COIN_COUNT := 5
 const COIN_RADIUS := 18.0
@@ -7,51 +7,27 @@ const EDGE_MARGIN := 80.0
 const BALL_SAFE_DIST := 200.0
 
 var _collected := 0
+var _label: Label = null
 var _coin_scene: PackedScene = null
-var _hud_card: PanelContainer = null
-var _score_label: Label = null
 
 
 func _ready() -> void:
 	_coin_scene = load("res://scenes/Coin.tscn")
-	_create_hud()
+	_create_ui()
 	_spawn_coins()
 
-	# HUD entrance animation
-	var tw := create_tween()
-	tw.tween_property(_hud_card, "position:x", 16, 0.5).from(-200).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 
-
-func _create_hud() -> void:
+func _create_ui() -> void:
 	var canvas := CanvasLayer.new()
 	canvas.name = "CoinUI"
 	add_child(canvas)
 
-	_hud_card = PanelContainer.new()
-	_hud_card.position = Vector2(16, 16)
-
-	var card_style := StyleBoxFlat.new()
-	card_style.bg_color = Color(1.0, 1.0, 1.0, 0.75)
-	card_style.border_width_left = 1
-	card_style.border_width_right = 1
-	card_style.border_width_top = 1
-	card_style.border_width_bottom = 1
-	card_style.border_color = Color(1.0, 1.0, 1.0, 0.5)
-	card_style.corner_radius_top_left = 20
-	card_style.corner_radius_top_right = 20
-	card_style.corner_radius_bottom_left = 20
-	card_style.corner_radius_bottom_right = 20
-	card_style.shadow_size = 8
-	card_style.shadow_color = Color(0, 0, 0, 0.1)
-	_hud_card.add_theme_stylebox_override("panel", card_style)
-
-	_score_label = Label.new()
-	_score_label.text = "%d / %d" % [_collected, COIN_COUNT]
-	_score_label.add_theme_font_size_override("font_size", 22)
-	_score_label.add_theme_color_override("font_color", Color(0.2, 0.15, 0.4))
-	_hud_card.add_child(_score_label)
-
-	canvas.add_child(_hud_card)
+	_label = Label.new()
+	_label.text = "0 / %d" % COIN_COUNT
+	_label.add_theme_font_size_override("font_size", 40)
+	_label.add_theme_color_override("font_color", Color(0.0667, 0.0667, 0.0667))
+	_label.position = Vector2(24, 24)
+	canvas.add_child(_label)
 
 
 func _spawn_coins() -> void:
@@ -93,18 +69,9 @@ func _find_valid_position(bounds: Vector2, ball_pos: Vector2, existing: Array[Ve
 
 func _on_coin_collected() -> void:
 	_collected += 1
-	_score_label.text = "%d / %d" % [_collected, COIN_COUNT]
-
-	# Score bounce animation
-	var tw := create_tween()
-	tw.tween_property(_score_label, "scale", Vector2(1.4, 1.4), 0.1).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-	tw.tween_property(_score_label, "scale", Vector2(1.0, 1.0), 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-
+	_label.text = "%d / %d" % [_collected, COIN_COUNT]
 	if _collected >= COIN_COUNT:
-		# Small delay before victory
-		var delay_tw := create_tween()
-		delay_tw.tween_interval(0.3)
-		delay_tw.tween_callback(_show_victory)
+		_show_victory()
 
 
 func _show_victory() -> void:
@@ -115,94 +82,46 @@ func _show_victory() -> void:
 	canvas.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(canvas)
 
-	# Frosted glass background
 	var bg := ColorRect.new()
-	bg.color = Color(0.94, 0.96, 1.0, 0.88)
+	bg.color = Color(0.98, 0.98, 0.98, 0.92)
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	canvas.add_child(bg)
 
-	var center := VBoxContainer.new()
-	center.set_anchors_preset(Control.PRESET_CENTER)
-	center.alignment = BoxContainer.ALIGNMENT_CENTER
-	center.add_theme_constant_override("separation", 20)
-	canvas.add_child(center)
+	var vbox := VBoxContainer.new()
+	vbox.set_anchors_preset(Control.PRESET_CENTER)
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 28)
+	canvas.add_child(vbox)
 
-	# Title
-	var title := Label.new()
-	title.text = "YOU WIN!"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 52)
-	title.add_theme_color_override("font_color", Color(0.39, 0.25, 0.95))
-	center.add_child(title)
+	var label := Label.new()
+	label.text = "胜利"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 48)
+	label.add_theme_color_override("font_color", Color(0.0667, 0.0667, 0.0667))
+	vbox.add_child(label)
 
-	# Stars
-	var stars := Label.new()
-	stars.text = "★★★★★"
-	stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stars.add_theme_font_size_override("font_size", 36)
-	center.add_child(stars)
+	var btn := Button.new()
+	btn.text = "再来一次"
+	btn.flat = false
+	btn.add_theme_font_size_override("font_size", 24)
+	btn.add_theme_color_override("font_color", Color(0.0667, 0.0667, 0.0667))
+	btn.custom_minimum_size = Vector2(200, 60)
 
-	# Score
-	var score := Label.new()
-	score.text = "%d / %d" % [_collected, COIN_COUNT]
-	score.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	score.add_theme_font_size_override("font_size", 28)
-	score.add_theme_color_override("font_color", Color(0.3, 0.2, 0.5))
-	center.add_child(score)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(1.0, 1.0, 1.0, 1.0)
+	style.border_width_left = 2
+	style.border_width_right = 2
+	style.border_width_top = 2
+	style.border_width_bottom = 2
+	style.border_color = Color(0.0667, 0.0667, 0.0667)
+	style.corner_radius_top_left = 12
+	style.corner_radius_top_right = 12
+	style.corner_radius_bottom_left = 12
+	style.corner_radius_bottom_right = 12
+	btn.add_theme_stylebox_override("normal", style)
 
-	# Spacer
-	var spacer := Control.new()
-	spacer.custom_minimum_size = Vector2(0, 8)
-	center.add_child(spacer)
-
-	# Restart button
-	var btn := _make_styled_button("Play Again", 220, 64)
 	btn.pressed.connect(func():
 		get_tree().paused = false
 		get_tree().reload_current_scene()
 	)
-	center.add_child(btn)
-
-	# Entrance animation
-	canvas.modulate.a = 0.0
-	var tw := create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(canvas, "modulate:a", 1.0, 0.3)
-	tw.tween_property(center, "scale", Vector2(1.0, 1.0), 0.5).from(Vector2(0.8, 0.8)).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-
-
-func _make_styled_button(text: String, w: float, h: float) -> Button:
-	var btn := Button.new()
-	btn.text = text
-	btn.flat = true
-	btn.custom_minimum_size = Vector2(w, h)
-	btn.add_theme_font_size_override("font_size", 22)
-	btn.add_theme_color_override("font_color", Color.WHITE)
-
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.49, 0.25, 0.95)
-	normal.corner_radius_top_left = 28
-	normal.corner_radius_top_right = 28
-	normal.corner_radius_bottom_left = 28
-	normal.corner_radius_bottom_right = 28
-	normal.shadow_size = 6
-	normal.shadow_color = Color(0.39, 0.25, 0.95, 0.3)
-	btn.add_theme_stylebox_override("normal", normal)
-
-	var hover := normal.duplicate()
-	hover.bg_color = Color(0.55, 0.35, 0.98)
-	btn.add_theme_stylebox_override("hover", hover)
-
-	var pressed := normal.duplicate()
-	pressed.bg_color = Color(0.39, 0.15, 0.85)
-	pressed.shadow_size = 2
-	btn.add_theme_stylebox_override("pressed", pressed)
-
-	# Press animation
-	btn.pressed.connect(func():
-		var tw := create_tween()
-		tw.tween_property(btn, "scale", Vector2(0.92, 0.92), 0.08).set_ease(Tween.EASE_IN)
-		tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-	)
-
-	return btn
+	vbox.add_child(btn)
