@@ -72,7 +72,7 @@ func _create_start_screen() -> void:
 	add_child(canvas)
 
 	var bg := ColorRect.new()
-	bg.color = Color(0.98, 0.98, 0.98)
+	bg.color = Color(1.0, 1.0, 1.0, 0.55)
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	canvas.add_child(bg)
 
@@ -225,7 +225,7 @@ func _show_result(text: String) -> void:
 	add_child(canvas)
 
 	var bg := ColorRect.new()
-	bg.color = Color(0.98, 0.98, 0.98, 0.92)
+	bg.color = Color(1.0, 1.0, 1.0, 0.6)
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	canvas.add_child(bg)
 

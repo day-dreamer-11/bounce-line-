@@ -83,7 +83,7 @@ func _show_victory() -> void:
 	add_child(canvas)
 
 	var bg := ColorRect.new()
-	bg.color = Color(0.98, 0.98, 0.98, 0.92)
+	bg.color = Color(1.0, 1.0, 1.0, 0.6)
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	canvas.add_child(bg)
 
