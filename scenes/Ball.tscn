@@ -6,7 +6,7 @@
 radius = 72.0
 
 [node name="Ball" type="RigidBody2D"]
-position = Vector2(360, 640)
+position = Vector2(360, 200)
 script = ExtResource("1_ball")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
