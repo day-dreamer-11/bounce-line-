@@ -82,10 +82,7 @@ func _show_victory() -> void:
 	canvas.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(canvas)
 
-	var bg := ColorRect.new()
-	bg.color = Color(1.0, 1.0, 1.0, 0.6)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	canvas.add_child(bg)
+	_show_overlay_bg(canvas)
 
 	var vbox := VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_CENTER)
@@ -125,3 +122,15 @@ func _show_victory() -> void:
 		get_tree().reload_current_scene()
 	)
 	vbox.add_child(btn)
+
+
+func _show_overlay_bg(canvas: CanvasLayer) -> void:
+	var tex := load("res://assets/ui_overlay.png")
+	if not tex:
+		return
+	var bg := TextureRect.new()
+	bg.texture = tex
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_SCALE
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(bg)

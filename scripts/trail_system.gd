@@ -38,6 +38,18 @@ func _create_background() -> void:
 	canvas.add_child(bg)
 
 
+func _make_overlay_bg(canvas: CanvasLayer) -> void:
+	var tex := load("res://assets/ui_overlay.png")
+	if not tex:
+		return
+	var bg := TextureRect.new()
+	bg.texture = tex
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_SCALE
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(bg)
+
+
 func _make_button(text: String, font_size: int, w: float, h: float) -> Button:
 	var btn := Button.new()
 	btn.text = text
@@ -71,10 +83,7 @@ func _create_start_screen() -> void:
 	canvas.name = "StartScreen"
 	add_child(canvas)
 
-	var bg := ColorRect.new()
-	bg.color = Color(1.0, 1.0, 1.0, 0.55)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	canvas.add_child(bg)
+	_make_overlay_bg(canvas)
 
 	var vbox := VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_CENTER)
@@ -224,10 +233,7 @@ func _show_result(text: String) -> void:
 	canvas.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(canvas)
 
-	var bg := ColorRect.new()
-	bg.color = Color(1.0, 1.0, 1.0, 0.6)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	canvas.add_child(bg)
+	_make_overlay_bg(canvas)
 
 	var vbox := VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_CENTER)
