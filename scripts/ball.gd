@@ -1,7 +1,7 @@
 extends RigidBody2D
-## Player ball — uses texture from assets/ball.png
+## Player ball — texture from assets/ball.png, collision matches displayed size.
 
-const RADIUS := 72.0
+const DISPLAY_RADIUS := 80.0
 
 signal fell_off_screen
 
@@ -16,17 +16,23 @@ func _ready() -> void:
 	continuous_cd = RigidBody2D.CCD_MODE_CAST_RAY
 
 	body_entered.connect(_on_body_entered)
-	_create_sprite()
+	_setup_texture()
 
 
-func _create_sprite() -> void:
+func _setup_texture() -> void:
 	var tex := load("res://assets/ball.png")
 	if not tex:
 		return
+
 	var sprite := Sprite2D.new()
 	sprite.texture = tex
-	sprite.scale = Vector2(RADIUS * 2 / tex.get_width(), RADIUS * 2 / tex.get_height())
+	var tex_size: float = tex.get_width()
+	sprite.scale = Vector2(DISPLAY_RADIUS * 2 / tex_size, DISPLAY_RADIUS * 2 / tex_size)
 	add_child(sprite)
+
+	var shape := CircleShape2D.new()
+	shape.radius = DISPLAY_RADIUS
+	$CollisionShape2D.shape = shape
 
 
 func _on_body_entered(body: Node) -> void:
