@@ -1,7 +1,7 @@
 extends RigidBody2D
 ## Player ball — texture from assets/ball.png, collision matches displayed size.
 
-const BALL_SCALE := 0.22
+const BALL_SCALE := 0.44
 
 signal fell_off_screen
 
