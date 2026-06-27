@@ -26,13 +26,16 @@ func _create_background() -> void:
 	var tex := load("res://assets/background.png")
 	if not tex:
 		return
+	var canvas := CanvasLayer.new()
+	canvas.name = "BackgroundLayer"
+	canvas.layer = -1
+	add_child(canvas)
 	var bg := TextureRect.new()
 	bg.texture = tex
 	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	bg.stretch_mode = TextureRect.STRETCH_SCALE
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
-	move_child(bg, 0)
+	canvas.add_child(bg)
 
 
 func _make_button(text: String, font_size: int, w: float, h: float) -> Button:
