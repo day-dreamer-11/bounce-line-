@@ -29,7 +29,7 @@ func _setup_texture() -> void:
 	sprite.scale = Vector2(BALL_SCALE, BALL_SCALE)
 	add_child(sprite)
 
-	var displayed_radius: float = tex.get_width() * BALL_SCALE / 2.0
+	var displayed_radius: float = tex.get_width() * BALL_SCALE / 4.0
 	var shape := CircleShape2D.new()
 	shape.radius = displayed_radius
 	$CollisionShape2D.shape = shape
