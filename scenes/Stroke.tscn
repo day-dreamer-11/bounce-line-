@@ -5,6 +5,8 @@
 [node name="Stroke" type="Node2D"]
 script = ExtResource("1_stroke")
 
+[node name="Glow" type="Line2D" parent="."]
+
 [node name="Line2D" type="Line2D" parent="."]
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]

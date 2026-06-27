@@ -1,25 +1,35 @@
 extends Node2D
-## A single stroke — Line2D visual + collision for ball bounce.
+## Drawn stroke — colorful gradient trail with glow, collision for ball bounce.
 
-const LINE_WIDTH := 16.0
+const LINE_WIDTH := 20.0
+const GLOW_WIDTH := 32.0
 const POINT_LIFETIME := 2.0
 const MIN_SAMPLE_DIST := 6.0
 const MAX_TOTAL_DIST := 400.0
+
+const TRAIL_COLOR := Color(0.45, 0.35, 0.95, 0.85)
+const TRAIL_END_COLOR := Color(0.55, 0.45, 0.98, 0.0)
+const GLOW_COLOR := Color(0.45, 0.35, 0.95, 0.2)
 
 var _points: Array[Dictionary] = []
 var _total_dist: float = 0.0
 
 @onready var _line: Line2D = $Line2D
+@onready var _glow: Line2D = $Glow
 @onready var _collision: CollisionPolygon2D = $StaticBody2D/CollisionPolygon2D
 
 
 func _ready() -> void:
-	_line.width = LINE_WIDTH
-	_line.default_color = Color.BLACK
+	_setup_line(_line, LINE_WIDTH, TRAIL_COLOR)
+	_setup_line(_glow, GLOW_WIDTH, GLOW_COLOR)
 	_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
 	_line.end_cap_mode = Line2D.LINE_CAP_ROUND
 	_line.joint_mode = Line2D.LINE_JOINT_ROUND
+	_glow.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	_glow.end_cap_mode = Line2D.LINE_CAP_ROUND
+	_glow.joint_mode = Line2D.LINE_JOINT_ROUND
 	_line.clear_points()
+	_glow.clear_points()
 
 	_collision.polygon = PackedVector2Array()
 	_collision.disabled = true
@@ -28,6 +38,14 @@ func _ready() -> void:
 	mat.bounce = 1.0
 	mat.friction = 0.0
 	$StaticBody2D.physics_material_override = mat
+
+
+func _setup_line(line: Line2D, width: float, color: Color) -> void:
+	line.width = width
+	line.default_color = color
+	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	line.joint_mode = Line2D.LINE_JOINT_ROUND
 
 
 func add_point(pos: Vector2, time: float) -> void:
@@ -44,30 +62,52 @@ func get_last_point() -> Vector2:
 	return _points[-1].position
 
 
-## Returns true when all points expired.
 func update_trail(now: float) -> bool:
-	# Remove expired points
 	while not _points.is_empty() and now - _points[0].time > POINT_LIFETIME:
 		_pop_front()
 
-	# Limit total length — oldest segment gets trimmed first
 	while _total_dist > MAX_TOTAL_DIST and _points.size() >= 2:
 		_pop_front()
 
 	if _points.is_empty():
 		return true
 
-	# Update visual
 	var pts := PackedVector2Array()
 	pts.resize(_points.size())
 	for i in _points.size():
 		pts[i] = _points[i].position
 	_line.points = pts
+	_glow.points = pts
 
-	# Update collision polygon
+	# Fade alpha based on point age
+	_update_gradient(now)
+
 	_build_collision_polygon()
-
 	return false
+
+
+func _update_gradient(now: float) -> void:
+	var count := _points.size()
+	var grad := Gradient.new()
+	grad.offsets = PackedFloat32Array()
+	grad.colors = PackedColorArray()
+
+	for i in count:
+		var age: float = now - _points[i].time
+		var alpha: float = clampf(1.0 - age / POINT_LIFETIME, 0.0, 1.0) * 0.85
+		var t: float = float(i) / max(count - 1, 1)
+		grad.add_point(t, Color(TRAIL_COLOR.r, TRAIL_COLOR.g, TRAIL_COLOR.b, alpha))
+
+	_line.gradient = grad
+
+	# Glow gradient
+	var glow_grad := Gradient.new()
+	for i in count:
+		var age: float = now - _points[i].time
+		var alpha: float = clampf(1.0 - age / POINT_LIFETIME, 0.0, 1.0) * 0.2
+		var t: float = float(i) / max(count - 1, 1)
+		glow_grad.add_point(t, Color(GLOW_COLOR.r, GLOW_COLOR.g, GLOW_COLOR.b, alpha))
+	_glow.gradient = glow_grad
 
 
 func _build_collision_polygon() -> void:
@@ -94,7 +134,6 @@ func _build_collision_polygon() -> void:
 		left.append(pos + perp * half)
 		right.append(pos - perp * half)
 
-	# Reverse right side to create continuous polygon
 	right.reverse()
 	var poly := left + right
 	_collision.polygon = poly
