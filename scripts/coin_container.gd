@@ -71,7 +71,7 @@ func _on_coin_collected() -> void:
 	_collected += 1
 	_label.text = "%d / %d" % [_collected, COIN_COUNT]
 	if _collected >= COIN_COUNT:
-		_show_victory()
+		get_tree().create_timer(0.7).timeout.connect(_show_victory)
 
 
 func _show_victory() -> void:

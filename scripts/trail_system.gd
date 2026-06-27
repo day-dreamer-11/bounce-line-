@@ -215,7 +215,7 @@ func _segment_hits_ball(pos: Vector2, stroke: Node2D) -> bool:
 
 func _on_game_over() -> void:
 	get_tree().paused = true
-	_show_result("游戏结束")
+	get_tree().create_timer(0.7).timeout.connect(func(): _show_result("游戏结束"))
 
 
 func _show_result(text: String) -> void:
