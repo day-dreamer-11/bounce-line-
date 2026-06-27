@@ -15,10 +15,24 @@ var _strokes: Array[Node2D] = []
 
 func _ready() -> void:
 	RenderingServer.set_default_clear_color(Color(0.98, 0.98, 0.98))
+	_create_background()
 	_stroke_scene = load("res://scenes/Stroke.tscn")
 	_create_borders()
 	_create_start_screen()
 	$Ball.fell_off_screen.connect(_on_game_over)
+
+
+func _create_background() -> void:
+	var tex := load("res://assets/background.png")
+	if not tex:
+		return
+	var bg := TextureRect.new()
+	bg.texture = tex
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_SCALE
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(bg)
+	move_child(bg, 0)
 
 
 func _make_button(text: String, font_size: int, w: float, h: float) -> Button:
