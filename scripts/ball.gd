@@ -1,7 +1,7 @@
 extends RigidBody2D
 ## Black ball — falls under gravity, bounces off lines, collects coins.
 
-const RADIUS := 55.0
+const RADIUS := 72.0
 const COLOR := Color(0.0667, 0.0667, 0.0667)
 
 signal fell_off_screen

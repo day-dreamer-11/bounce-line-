@@ -1,7 +1,7 @@
 extends Node2D
 ## Handles drag input — creates short lines for the ball to bounce off.
 
-const LINE_LENGTH := 150.0
+const LINE_LENGTH := 100.0
 
 var _drag_start: Vector2 = Vector2.ZERO
 var _is_dragging: bool = false

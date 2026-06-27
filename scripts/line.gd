@@ -1,7 +1,7 @@
 extends StaticBody2D
 ## A drawn line — lasts 2 seconds then disappears.
 
-const LENGTH := 150.0
+const LENGTH := 100.0
 const WIDTH := 4.0
 const COLOR := Color(0.0667, 0.0667, 0.0667)
 const LIFETIME := 2.0
