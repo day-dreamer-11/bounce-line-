@@ -16,7 +16,23 @@ func _ready() -> void:
 	physics_material_override = mat
 	continuous_cd = RigidBody2D.CCD_MODE_CAST_RAY
 
+	body_entered.connect(_on_body_entered)
 	queue_redraw()
+
+
+func _on_body_entered(body: Node) -> void:
+	var is_stroke := false
+	var parent := body.get_parent()
+	if parent and parent.has_method("add_point"):
+		is_stroke = true
+	elif body.has_method("reset_timer"):
+		is_stroke = true
+
+	if is_stroke:
+		var vel := linear_velocity
+		vel.y *= 1.3 if vel.y < 0 else 1.0
+		vel.y -= 150.0
+		linear_velocity = vel
 
 
 func _process(_delta: float) -> void:

@@ -541,7 +541,9 @@ func _handle_sse_request(peer: StreamPeerTCP, parsed: Dictionary) -> void:
 	
 	peer.put_data(response_header.to_utf8_buffer())
 	
-	# 发送初始消息
+	# 发送 MCP 规范的 endpoint 事件（客户端用此 URL 发送 POST 消息）
+	_send_sse_event(peer, "endpoint", {"uri": "/mcp"})
+	# 发送初始连接确认
 	_send_sse_event(peer, "connected", {"session_id": session_id})
 	
 	# 保存 SSE 连接
