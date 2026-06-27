@@ -5,6 +5,14 @@ const LINE_WIDTH := 16.0
 const POINT_LIFETIME := 2.0
 const MIN_SAMPLE_DIST := 6.0
 
+# Color palette from sample: blue-purple + gold accents
+const COLOR_PRIMARY := Color(0.35, 0.49, 0.93)    # #598aed blue
+const COLOR_PRIMARY_DARK := Color(0.20, 0.31, 0.72)  # dark blue
+const COLOR_GOLD := Color(0.96, 0.90, 0.78)        # warm gold highlight
+const COLOR_GOLD_DARK := Color(0.85, 0.65, 0.15)   # deep gold
+const COLOR_WHITE := Color(0.98, 0.98, 0.99)       # off-white text
+const COLOR_SHADOW := Color(0.0, 0.0, 0.0, 0.3)
+
 var _is_drawing := false
 var _game_started := false
 var _countdown_active := false
@@ -50,7 +58,6 @@ func _make_overlay_bg(canvas: CanvasLayer) -> void:
 	canvas.add_child(bg)
 
 
-## Create a title label with shadow effect (layered labels)
 func _make_shadow_label(text: String, font_size: int, main_color: Color, shadow_color: Color) -> Control:
 	var ctrl := Control.new()
 	ctrl.custom_minimum_size = Vector2(0, font_size * 1.4)
@@ -62,7 +69,7 @@ func _make_shadow_label(text: String, font_size: int, main_color: Color, shadow_
 	shadow.add_theme_font_size_override("font_size", font_size)
 	shadow.add_theme_color_override("font_color", shadow_color)
 	shadow.set_anchors_preset(Control.PRESET_FULL_RECT)
-	shadow.position = Vector2(3, 3)
+	shadow.position = Vector2(2, 2)
 	ctrl.add_child(shadow)
 
 	var main := Label.new()
@@ -82,25 +89,25 @@ func _make_button(text: String, font_size: int, w: float, h: float) -> Button:
 	btn.text = text
 	btn.flat = true
 	btn.add_theme_font_size_override("font_size", font_size)
-	btn.add_theme_color_override("font_color", Color.WHITE)
+	btn.add_theme_color_override("font_color", COLOR_WHITE)
 	btn.custom_minimum_size = Vector2(w, h)
 
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.85, 0.45, 0.15)  # warm orange-brown
-	normal.corner_radius_top_left = 18
-	normal.corner_radius_top_right = 18
-	normal.corner_radius_bottom_left = 18
-	normal.corner_radius_bottom_right = 18
-	normal.shadow_size = 6
-	normal.shadow_color = Color(0.6, 0.3, 0.1, 0.4)
+	normal.bg_color = COLOR_PRIMARY
+	normal.corner_radius_top_left = 20
+	normal.corner_radius_top_right = 20
+	normal.corner_radius_bottom_left = 20
+	normal.corner_radius_bottom_right = 20
+	normal.shadow_size = 8
+	normal.shadow_color = Color(COLOR_PRIMARY.r, COLOR_PRIMARY.g, COLOR_PRIMARY.b, 0.4)
 	btn.add_theme_stylebox_override("normal", normal)
 
 	var hover := normal.duplicate()
-	hover.bg_color = Color(0.95, 0.55, 0.2)
+	hover.bg_color = Color(0.45, 0.58, 0.96)
 	btn.add_theme_stylebox_override("hover", hover)
 
 	var pressed := normal.duplicate()
-	pressed.bg_color = Color(0.7, 0.35, 0.1)
+	pressed.bg_color = COLOR_PRIMARY_DARK
 	pressed.shadow_size = 2
 	btn.add_theme_stylebox_override("pressed", pressed)
 
@@ -128,23 +135,29 @@ func _create_start_screen() -> void:
 
 	_make_overlay_bg(canvas)
 
+	# Semi-transparent dark overlay for contrast
+	var overlay := ColorRect.new()
+	overlay.color = Color(0.05, 0.08, 0.15, 0.3)
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(overlay)
+
 	var vbox := VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_CENTER)
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_theme_constant_override("separation", 24)
 	canvas.add_child(vbox)
 
-	vbox.add_child(_make_shadow_label("弹弹球", 56, Color(0.85, 0.45, 0.15), Color(0, 0, 0, 0.25)))
+	vbox.add_child(_make_shadow_label("弹弹球", 58, COLOR_WHITE, COLOR_SHADOW))
 
 	var subtitle := Label.new()
 	subtitle.text = "Draw · Bounce · Collect"
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle.add_theme_font_size_override("font_size", 18)
-	subtitle.add_theme_color_override("font_color", Color(0.55, 0.35, 0.2, 0.7))
+	subtitle.add_theme_color_override("font_color", COLOR_GOLD)
 	vbox.add_child(subtitle)
 
 	var spacer := Control.new()
-	spacer.custom_minimum_size = Vector2(0, 16)
+	spacer.custom_minimum_size = Vector2(0, 20)
 	vbox.add_child(spacer)
 
 	var btn := _make_button("开始游戏", 26, 200, 64)
@@ -164,6 +177,12 @@ func _start_countdown() -> void:
 	cc.name = "Countdown"
 	add_child(cc)
 
+	# Dark overlay for countdown readability
+	var overlay := ColorRect.new()
+	overlay.color = Color(0.05, 0.08, 0.15, 0.25)
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cc.add_child(overlay)
+
 	var ctrl := Control.new()
 	ctrl.set_anchors_preset(Control.PRESET_FULL_RECT)
 	cc.add_child(ctrl)
@@ -182,21 +201,26 @@ func _show_count(ctrl: Control, n: int, ball: RigidBody2D, canvas: CanvasLayer) 
 	for child in ctrl.get_children():
 		child.queue_free()
 
-	var label := _make_shadow_label(str(n), 140, Color(0.85, 0.45, 0.15), Color(0, 0, 0, 0.3))
+	var count_colors := [
+		Color(0.35, 0.49, 0.93),   # blue
+		Color(0.40, 0.60, 0.55),   # teal
+		Color(0.95, 0.55, 0.15),   # orange
+	]
+	var label := _make_shadow_label(str(n), 150, count_colors[3 - n], COLOR_SHADOW)
 	label.set_anchors_preset(Control.PRESET_CENTER)
 	label.modulate.a = 0.0
-	label.scale = Vector2(0.5, 0.5)
+	label.scale = Vector2(0.4, 0.4)
 	ctrl.add_child(label)
 
 	var tw := create_tween()
 	tw.set_parallel(true)
-	tw.tween_property(label, "modulate:a", 1.0, 0.15)
-	tw.tween_property(label, "scale", Vector2(1.1, 1.1), 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-	tw.tween_property(label, "scale", Vector2(1.0, 1.0), 0.15).set_delay(0.3)
-	tw.tween_property(label, "modulate:a", 0.0, 0.15).set_delay(0.55)
+	tw.tween_property(label, "modulate:a", 1.0, 0.12)
+	tw.tween_property(label, "scale", Vector2(1.15, 1.15), 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tw.tween_property(label, "scale", Vector2(1.0, 1.0), 0.12).set_delay(0.3)
+	tw.tween_property(label, "modulate:a", 0.0, 0.12).set_delay(0.55)
 	tw.tween_callback(func():
 		_show_count(ctrl, n - 1, ball, canvas)
-	).set_delay(0.7)
+	).set_delay(0.67)
 
 
 func _create_borders() -> void:
@@ -289,13 +313,22 @@ func _show_result(text: String) -> void:
 
 	_make_overlay_bg(canvas)
 
+	var overlay := ColorRect.new()
+	overlay.color = Color(0.05, 0.08, 0.15, 0.35)
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(overlay)
+
 	var vbox := VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_CENTER)
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_theme_constant_override("separation", 24)
 	canvas.add_child(vbox)
 
-	vbox.add_child(_make_shadow_label(text, 48, Color(0.85, 0.45, 0.15), Color(0, 0, 0, 0.25)))
+	vbox.add_child(_make_shadow_label(text, 50, COLOR_WHITE, COLOR_SHADOW))
+
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, 12)
+	vbox.add_child(spacer)
 
 	var btn := _make_button("再来一次", 24, 200, 60)
 	btn.pressed.connect(func():
