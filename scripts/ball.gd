@@ -51,6 +51,6 @@ func _on_body_entered(body: Node) -> void:
 
 
 func _process(_delta: float) -> void:
-	if global_position.y > 1350.0:
+	if global_position.y > 1550.0:
 		fell_off_screen.emit()
 		set_process(false)
