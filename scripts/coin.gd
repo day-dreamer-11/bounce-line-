@@ -1,7 +1,7 @@
 extends Area2D
 ## Gold coin — texture from assets/coin.png, collision matches display.
 
-const DISPLAY_RADIUS := 36.0
+const DISPLAY_RADIUS := 54.0
 
 signal collected
 

@@ -2,9 +2,9 @@ extends Node2D
 ## Spawns 5 coins at random positions + shows collection counter.
 
 const COIN_COUNT := 5
-const COIN_RADIUS := 18.0
-const EDGE_MARGIN := 80.0
-const BALL_SAFE_DIST := 200.0
+const COIN_RADIUS := 54.0
+const EDGE_MARGIN := 110.0
+const BALL_SAFE_DIST := 380.0
 
 const COLOR_BLUE := Color(0.35, 0.49, 0.93)
 const COLOR_WHITE := Color(0.98, 0.98, 0.99)
@@ -59,7 +59,7 @@ func _create_ui() -> void:
 
 func _spawn_coins() -> void:
 	var bounds := Vector2(720, 1280)
-	var ball_pos := Vector2(360, 130)
+	var ball_pos: Vector2 = get_node("../Ball").position
 	var placed: Array[Vector2] = []
 
 	for _i in COIN_COUNT:
@@ -114,7 +114,7 @@ func _show_victory() -> void:
 	canvas.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(canvas)
 
-	var tex := load("res://assets/ui_overlay.png")
+	var tex := load("res://assets/background.png")
 	if tex:
 		var bg := TextureRect.new()
 		bg.texture = tex
@@ -131,6 +131,7 @@ func _show_victory() -> void:
 
 	var vbox := VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_CENTER)
+	vbox.position = Vector2(-85, -200)
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_theme_constant_override("separation", 20)
 	canvas.add_child(vbox)
@@ -192,29 +193,45 @@ func _make_shadow_label(text: String, font_size: int, main_color: Color, shadow_
 func _make_styled_button(text: String, w: float, h: float) -> Button:
 	var btn := Button.new()
 	btn.text = text
-	btn.flat = true
+	btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	btn.add_theme_font_size_override("font_size", 24)
-	btn.add_theme_color_override("font_color", COLOR_WHITE)
+	btn.add_theme_color_override("font_color", COLOR_GOLD)
 	btn.custom_minimum_size = Vector2(w, h)
 
+	const BORDER := Color(0.96, 0.82, 0.35, 0.9)
+
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = COLOR_BLUE
-	normal.corner_radius_top_left = 20
-	normal.corner_radius_top_right = 20
-	normal.corner_radius_bottom_left = 20
-	normal.corner_radius_bottom_right = 20
-	normal.shadow_size = 8
-	normal.shadow_color = Color(COLOR_BLUE.r, COLOR_BLUE.g, COLOR_BLUE.b, 0.4)
+	normal.bg_color = Color(0.18, 0.28, 0.62)
+	normal.corner_radius_top_left = 24
+	normal.corner_radius_top_right = 24
+	normal.corner_radius_bottom_left = 24
+	normal.corner_radius_bottom_right = 24
+	normal.border_width_left = 3
+	normal.border_width_right = 3
+	normal.border_width_top = 3
+	normal.border_width_bottom = 3
+	normal.border_color = BORDER
+	normal.shadow_size = 14
+	normal.shadow_color = Color(0, 0, 0, 0.45)
 	btn.add_theme_stylebox_override("normal", normal)
 
 	var hover := normal.duplicate()
-	hover.bg_color = Color(0.45, 0.58, 0.96)
+	hover.bg_color = Color(0.25, 0.36, 0.72)
+	hover.border_color = Color(1.0, 0.92, 0.55, 0.95)
+	hover.shadow_size = 20
+	hover.shadow_color = Color(COLOR_BLUE.r, COLOR_BLUE.g, COLOR_BLUE.b, 0.5)
 	btn.add_theme_stylebox_override("hover", hover)
 
 	var pressed := normal.duplicate()
 	pressed.bg_color = Color(0.20, 0.31, 0.72)
-	pressed.shadow_size = 2
+	pressed.border_color = Color(0.75, 0.60, 0.15, 0.8)
+	pressed.shadow_size = 4
+	pressed.shadow_color = Color(0, 0, 0, 0.2)
+	pressed.content_margin_top = 4
+	pressed.content_margin_bottom = -4
 	btn.add_theme_stylebox_override("pressed", pressed)
+
+	btn.add_theme_stylebox_override("focus", normal)
 
 	btn.pressed.connect(func():
 		var tw := create_tween()

@@ -1,40 +1,78 @@
 extends Node2D
-## A single stroke — Line2D visual + collision for ball bounce.
+## Energy trail stroke — multi-layer glow.
 
-const LINE_WIDTH := 16.0
+const COLOR_CORE := Color("9D6BFF")
+const COLOR_MID := Color("6F7DFF")
+const COLOR_EDGE := Color("5FD8FF")
+
 const POINT_LIFETIME := 2.0
-const MIN_SAMPLE_DIST := 6.0
-const MAX_TOTAL_DIST := 400.0
+const FADE_DURATION := 1.0
+const MIN_SAMPLE_DIST := 2.0
+const TRAIL_MIN_LEN := 300.0
+const TRAIL_MAX_LEN := 450.0
+const COLLISION_HALF := 8.0
 
 var _points: Array[Dictionary] = []
 var _total_dist: float = 0.0
+var _max_length: float = TRAIL_MIN_LEN
+var _fading: bool = false
 
-@onready var _line: Line2D = $Line2D
+@onready var _outer: Line2D = $OuterLine
+@onready var _mid: Line2D = $MidLine
+@onready var _core: Line2D = $CoreLine
 @onready var _collision: CollisionPolygon2D = $StaticBody2D/CollisionPolygon2D
 
 
 func _ready() -> void:
-	_line.width = LINE_WIDTH
-	_line.default_color = Color.BLACK
-	_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
-	_line.end_cap_mode = Line2D.LINE_CAP_ROUND
-	_line.joint_mode = Line2D.LINE_JOINT_ROUND
-	_line.clear_points()
+	_setup_line(_outer, 48.0, Color(COLOR_EDGE.r, COLOR_EDGE.g, COLOR_EDGE.b, 0.06))
+	_setup_line(_mid, 28.0, Color(COLOR_MID.r, COLOR_MID.g, COLOR_MID.b, 0.18))
+	_setup_line(_core, 16.0, COLOR_CORE)
 
-	_collision.polygon = PackedVector2Array()
-	_collision.disabled = true
+	var curve := Curve.new()
+	curve.bake_resolution = 32
+	curve.add_point(Vector2(0.0, 0.1), 0, 0, Curve.TANGENT_LINEAR, Curve.TANGENT_LINEAR)
+	curve.add_point(Vector2(0.3, 0.4), 0, 0, Curve.TANGENT_LINEAR, Curve.TANGENT_LINEAR)
+	curve.add_point(Vector2(0.7, 0.8), 0, 0, Curve.TANGENT_LINEAR, Curve.TANGENT_LINEAR)
+	curve.add_point(Vector2(1.0, 1.0), 0, 0, Curve.TANGENT_LINEAR, Curve.TANGENT_LINEAR)
+	_core.width_curve = curve
 
 	var mat := PhysicsMaterial.new()
 	mat.bounce = 1.0
 	mat.friction = 0.0
 	$StaticBody2D.physics_material_override = mat
+	_collision.polygon = PackedVector2Array()
+	_collision.disabled = true
+
+
+func _setup_line(line: Line2D, base_width: float, color: Color) -> void:
+	line.width = base_width
+	line.default_color = color
+	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	line.joint_mode = Line2D.LINE_JOINT_ROUND
+
+	var grad := Gradient.new()
+	grad.offsets = PackedFloat32Array([0.0, 0.15, 0.4, 0.7, 1.0])
+	grad.colors = PackedColorArray([
+		Color(COLOR_EDGE, 0.0),
+		Color(COLOR_EDGE.r, COLOR_EDGE.g, COLOR_EDGE.b, 0.2),
+		COLOR_EDGE,
+		COLOR_MID,
+		COLOR_CORE
+	])
+	line.gradient = grad
+
+
+func set_speed_factor(factor: float) -> void:
+	_max_length = lerp(TRAIL_MIN_LEN, TRAIL_MAX_LEN, clampf(factor, 0.0, 1.0))
 
 
 func add_point(pos: Vector2, time: float) -> void:
 	if not _points.is_empty():
-		if pos.distance_to(_points[-1].position) < MIN_SAMPLE_DIST:
+		var d := pos.distance_to(_points[-1].position)
+		if d < MIN_SAMPLE_DIST:
 			return
-		_total_dist += pos.distance_to(_points[-1].position)
+		_total_dist += d
 	_points.append({position = pos, time = time})
 
 
@@ -44,61 +82,77 @@ func get_last_point() -> Vector2:
 	return _points[-1].position
 
 
-## Returns true when all points expired.
 func update_trail(now: float) -> bool:
-	# Remove expired points
+	if _fading:
+		_update_visuals()
+		return false
+
 	while not _points.is_empty() and now - _points[0].time > POINT_LIFETIME:
 		_pop_front()
 
-	# Limit total length — oldest segment gets trimmed first
-	while _total_dist > MAX_TOTAL_DIST and _points.size() >= 2:
+	while _total_dist > _max_length and _points.size() >= 2:
 		_pop_front()
 
 	if _points.is_empty():
 		return true
 
-	# Update visual
+	_update_visuals()
+	return false
+
+
+func _update_visuals() -> void:
+	if _points.is_empty():
+		return
+
 	var pts := PackedVector2Array()
 	pts.resize(_points.size())
 	for i in _points.size():
 		pts[i] = _points[i].position
-	_line.points = pts
 
-	# Update collision polygon
-	_build_collision_polygon()
+	_outer.points = pts
+	_mid.points = pts
+	_core.points = pts
 
-	return false
+	_build_collision(pts)
 
 
-func _build_collision_polygon() -> void:
-	var count := _points.size()
+func _build_collision(pts: PackedVector2Array) -> void:
+	var count := pts.size()
 	if count < 2:
 		_collision.disabled = true
 		return
 
-	var half := LINE_WIDTH / 2.0
 	var left := PackedVector2Array()
 	var right := PackedVector2Array()
 
 	for i in count:
-		var pos: Vector2 = _points[i].position
+		var pos := pts[i]
 		var dir: Vector2
 		if i == 0:
-			dir = (_points[1].position - pos).normalized()
+			dir = (pts[1] - pos).normalized()
 		elif i == count - 1:
-			dir = (pos - _points[i - 1].position).normalized()
+			dir = (pos - pts[i - 1]).normalized()
 		else:
-			dir = (_points[i + 1].position - _points[i - 1].position).normalized()
+			dir = (pts[i + 1] - pts[i - 1]).normalized()
 
 		var perp := Vector2(-dir.y, dir.x)
-		left.append(pos + perp * half)
-		right.append(pos - perp * half)
+		left.append(pos + perp * COLLISION_HALF)
+		right.append(pos - perp * COLLISION_HALF)
 
-	# Reverse right side to create continuous polygon
 	right.reverse()
-	var poly := left + right
-	_collision.polygon = poly
+	_collision.polygon = left + right
 	_collision.disabled = false
+
+
+func start_fade() -> void:
+	if _fading:
+		return
+	_fading = true
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(_outer, "modulate:a", 0.0, FADE_DURATION).set_ease(Tween.EASE_OUT)
+	tw.tween_property(_mid, "modulate:a", 0.0, FADE_DURATION).set_ease(Tween.EASE_OUT)
+	tw.tween_property(_core, "modulate:a", 0.0, FADE_DURATION).set_ease(Tween.EASE_OUT)
+	tw.chain().tween_callback(queue_free)
 
 
 func _pop_front() -> void:

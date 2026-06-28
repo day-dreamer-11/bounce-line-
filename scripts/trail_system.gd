@@ -6,11 +6,11 @@ const POINT_LIFETIME := 2.0
 const MIN_SAMPLE_DIST := 6.0
 
 # Color palette from sample: blue-purple + gold accents
-const COLOR_PRIMARY := Color(0.35, 0.49, 0.93)    # #598aed blue
-const COLOR_PRIMARY_DARK := Color(0.20, 0.31, 0.72)  # dark blue
-const COLOR_GOLD := Color(0.96, 0.90, 0.78)        # warm gold highlight
-const COLOR_GOLD_DARK := Color(0.85, 0.65, 0.15)   # deep gold
-const COLOR_WHITE := Color(0.98, 0.98, 0.99)       # off-white text
+const COLOR_PRIMARY := Color(0.35, 0.49, 0.93)
+const COLOR_PRIMARY_DARK := Color(0.20, 0.31, 0.72)
+const COLOR_GOLD := Color(0.96, 0.90, 0.78)
+const COLOR_GOLD_DARK := Color(0.85, 0.65, 0.15)
+const COLOR_WHITE := Color(0.98, 0.98, 0.99)
 const COLOR_SHADOW := Color(0.0, 0.0, 0.0, 0.3)
 
 var _is_drawing := false
@@ -20,6 +20,13 @@ var _stroke_scene: PackedScene = null
 
 var _strokes: Array[Node2D] = []
 
+# Speed tracking
+var _ball_last_pos: Vector2 = Vector2.ZERO
+var _ball_speed: float = 0.0
+
+# Particle system for sparkles
+var _sparkles: CPUParticles2D = null
+
 
 func _ready() -> void:
 	RenderingServer.set_default_clear_color(Color(0.98, 0.98, 0.98))
@@ -27,6 +34,7 @@ func _ready() -> void:
 	_stroke_scene = load("res://scenes/Stroke.tscn")
 	_create_borders()
 	_create_start_screen()
+	_setup_sparkles()
 	$Ball.fell_off_screen.connect(_on_game_over)
 
 
@@ -46,8 +54,48 @@ func _create_background() -> void:
 	canvas.add_child(bg)
 
 
+func _setup_sparkles() -> void:
+	_sparkles = CPUParticles2D.new()
+	_sparkles.name = "Sparkles"
+	_sparkles.emitting = false
+	_sparkles.one_shot = false
+	_sparkles.amount = 6
+	_sparkles.lifetime = 0.4
+	_sparkles.explosiveness = 0.35
+	_sparkles.spread = 50.0
+	_sparkles.speed_scale = 0.5
+	_sparkles.gravity = Vector2(0, -8)
+	_sparkles.scale_amount_min = 0.8
+	_sparkles.scale_amount_max = 3.0
+	_sparkles.color = Color.WHITE
+
+	var ramp := Gradient.new()
+	ramp.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
+	ramp.colors = PackedColorArray([
+		Color(1.0, 1.0, 1.0, 1.0),
+		Color(0.85, 0.78, 1.0, 0.7),
+		Color(0.62, 0.42, 1.0, 0.0)
+	])
+	_sparkles.color_ramp = ramp
+
+	var dot_tex := _make_dot_texture(16)
+	_sparkles.texture = dot_tex
+	add_child(_sparkles)
+
+
+func _make_dot_texture(size: int = 16) -> ImageTexture:
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var cx := size / 2.0
+	for x in size:
+		for y in size:
+			var d := Vector2(x - cx + 0.5, y - cx + 0.5).length() / cx
+			var a := 1.0 - smoothstep(0.0, 1.0, d)
+			img.set_pixel(x, y, Color(1, 1, 1, a))
+	return ImageTexture.create_from_image(img)
+
+
 func _make_overlay_bg(canvas: CanvasLayer) -> void:
-	var tex := load("res://assets/ui_overlay.png")
+	var tex := load("res://assets/background.png")
 	if not tex:
 		return
 	var bg := TextureRect.new()
@@ -87,42 +135,62 @@ func _make_shadow_label(text: String, font_size: int, main_color: Color, shadow_
 func _make_button(text: String, font_size: int, w: float, h: float) -> Button:
 	var btn := Button.new()
 	btn.text = text
-	btn.flat = true
+	btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	btn.add_theme_font_size_override("font_size", font_size)
-	btn.add_theme_color_override("font_color", COLOR_WHITE)
+	btn.add_theme_color_override("font_color", COLOR_GOLD)
 	btn.custom_minimum_size = Vector2(w, h)
 
+	# Gold border
+	const BORDER := Color(0.96, 0.82, 0.35, 0.9)
+	const BORDER_SOFT := Color(0.96, 0.82, 0.35, 0.4)
+
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = COLOR_PRIMARY
-	normal.corner_radius_top_left = 20
-	normal.corner_radius_top_right = 20
-	normal.corner_radius_bottom_left = 20
-	normal.corner_radius_bottom_right = 20
-	normal.shadow_size = 8
-	normal.shadow_color = Color(COLOR_PRIMARY.r, COLOR_PRIMARY.g, COLOR_PRIMARY.b, 0.4)
+	normal.bg_color = Color(0.18, 0.28, 0.62)
+	normal.corner_radius_top_left = 24
+	normal.corner_radius_top_right = 24
+	normal.corner_radius_bottom_left = 24
+	normal.corner_radius_bottom_right = 24
+	normal.border_width_left = 3
+	normal.border_width_right = 3
+	normal.border_width_top = 3
+	normal.border_width_bottom = 3
+	normal.border_color = BORDER
+	normal.shadow_size = 14
+	normal.shadow_color = Color(0, 0, 0, 0.45)
 	btn.add_theme_stylebox_override("normal", normal)
 
 	var hover := normal.duplicate()
-	hover.bg_color = Color(0.45, 0.58, 0.96)
+	hover.bg_color = Color(0.25, 0.36, 0.72)
+	hover.border_color = Color(1.0, 0.92, 0.55, 0.95)
+	hover.shadow_size = 20
+	hover.shadow_color = Color(COLOR_PRIMARY.r, COLOR_PRIMARY.g, COLOR_PRIMARY.b, 0.5)
 	btn.add_theme_stylebox_override("hover", hover)
 
 	var pressed := normal.duplicate()
 	pressed.bg_color = COLOR_PRIMARY_DARK
-	pressed.shadow_size = 2
+	pressed.border_color = Color(0.75, 0.60, 0.15, 0.8)
+	pressed.shadow_size = 4
+	pressed.shadow_color = Color(0, 0, 0, 0.2)
+	# Shift down to simulate press
+	pressed.content_margin_top = 4
+	pressed.content_margin_bottom = -4
 	btn.add_theme_stylebox_override("pressed", pressed)
+
+	# Focus style same as normal
+	btn.add_theme_stylebox_override("focus", normal)
 
 	btn.mouse_entered.connect(func():
 		var tw := create_tween()
-		tw.tween_property(btn, "scale", Vector2(1.05, 1.05), 0.1).set_ease(Tween.EASE_OUT)
+		tw.tween_property(btn, "scale", Vector2(1.04, 1.04), 0.12).set_ease(Tween.EASE_OUT)
 	)
 	btn.mouse_exited.connect(func():
 		var tw := create_tween()
-		tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.1)
+		tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.12)
 	)
 	btn.pressed.connect(func():
 		var tw := create_tween()
-		tw.tween_property(btn, "scale", Vector2(0.93, 0.93), 0.06)
-		tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+		tw.tween_property(btn, "scale", Vector2(0.94, 0.94), 0.05)
+		tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.25).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	)
 
 	return btn
@@ -135,7 +203,6 @@ func _create_start_screen() -> void:
 
 	_make_overlay_bg(canvas)
 
-	# Semi-transparent dark overlay for contrast
 	var overlay := ColorRect.new()
 	overlay.color = Color(0.05, 0.08, 0.15, 0.3)
 	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -143,6 +210,7 @@ func _create_start_screen() -> void:
 
 	var vbox := VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_CENTER)
+	vbox.position = Vector2(-85, -200)
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_theme_constant_override("separation", 24)
 	canvas.add_child(vbox)
@@ -177,7 +245,6 @@ func _start_countdown() -> void:
 	cc.name = "Countdown"
 	add_child(cc)
 
-	# Dark overlay for countdown readability
 	var overlay := ColorRect.new()
 	overlay.color = Color(0.05, 0.08, 0.15, 0.25)
 	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -196,15 +263,16 @@ func _show_count(ctrl: Control, n: int, ball: RigidBody2D, canvas: CanvasLayer) 
 		ball.freeze = false
 		_countdown_active = false
 		_game_started = true
+		_ball_last_pos = ball.global_position
 		return
 
 	for child in ctrl.get_children():
 		child.queue_free()
 
 	var count_colors := [
-		Color(0.35, 0.49, 0.93),   # blue
-		Color(0.40, 0.60, 0.55),   # teal
-		Color(0.95, 0.55, 0.15),   # orange
+		Color(0.35, 0.49, 0.93),
+		Color(0.40, 0.60, 0.55),
+		Color(0.95, 0.55, 0.15),
 	]
 	var label := _make_shadow_label(str(n), 150, count_colors[3 - n], COLOR_SHADOW)
 	label.set_anchors_preset(Control.PRESET_CENTER)
@@ -256,16 +324,28 @@ func _input(event: InputEvent) -> void:
 			_is_drawing = false
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if not _game_started:
 		return
 	var now := Time.get_ticks_msec() / 1000.0
+
+	var ball_pos: Vector2 = $Ball.global_position
+	_ball_speed = _ball_last_pos.distance_to(ball_pos) / max(delta, 0.0001)
+	_ball_last_pos = ball_pos
+	var speed_factor := clampf(_ball_speed / 600.0, 0.0, 1.0)
 
 	if _is_drawing and not _strokes.is_empty():
 		var pos := get_global_mouse_position()
 		var stroke := _strokes[-1]
 		if not _segment_hits_ball(pos, stroke):
 			stroke.add_point(pos, now)
+		stroke.set_speed_factor(speed_factor)
+		_sparkles.position = pos
+		_sparkles.emitting = true
+		_sparkles.amount = int(lerp(4.0, 12.0, speed_factor))
+		_sparkles.speed_scale = lerp(0.3, 0.8, speed_factor)
+	else:
+		_sparkles.emitting = false
 
 	var i := 0
 	while i < _strokes.size():
@@ -282,6 +362,11 @@ func _spawn_stroke() -> void:
 	add_child(s)
 	_strokes.append(s)
 	s.add_point(get_global_mouse_position(), Time.get_ticks_msec() / 1000.0)
+	s.tree_exited.connect(_on_stroke_freed.bind(s))
+
+
+func _on_stroke_freed(s: Node2D) -> void:
+	_strokes.erase(s)
 
 
 func _segment_hits_ball(pos: Vector2, stroke: Node2D) -> bool:
@@ -320,6 +405,7 @@ func _show_result(text: String) -> void:
 
 	var vbox := VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_CENTER)
+	vbox.position = Vector2(-85, -200)
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_theme_constant_override("separation", 24)
 	canvas.add_child(vbox)

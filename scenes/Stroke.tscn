@@ -5,7 +5,11 @@
 [node name="Stroke" type="Node2D"]
 script = ExtResource("1_stroke")
 
-[node name="Line2D" type="Line2D" parent="."]
+[node name="OuterLine" type="Line2D" parent="."]
+
+[node name="MidLine" type="Line2D" parent="."]
+
+[node name="CoreLine" type="Line2D" parent="."]
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 
