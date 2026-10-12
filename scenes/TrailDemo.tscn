@@ -1,13 +1,14 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://28bc0lbbgfs1"]
 
-[ext_resource type="Script" path="res://scripts/trail_system.gd" id="1_trail"]
+[ext_resource type="Script" uid="uid://cllndcypio1n6" path="res://scripts/trail_system.gd" id="1_trail"]
 [ext_resource type="PackedScene" uid="uid://ball001" path="res://scenes/Ball.tscn" id="2_ball"]
-[ext_resource type="Script" path="res://scripts/coin_container.gd" id="3_coins"]
+[ext_resource type="Script" uid="uid://dmn0h44x1ie5q" path="res://scripts/coin_container.gd" id="3_coins"]
 
-[node name="TrailDemo" type="Node2D"]
+[node name="TrailDemo" type="Node2D" unique_id=630221096]
 script = ExtResource("1_trail")
 
-[node name="Ball" parent="." instance=ExtResource("2_ball")]
+[node name="Ball" parent="." unique_id=970810520 instance=ExtResource("2_ball")]
 
-[node name="CoinContainer" type="Node2D" parent="."]
+[node name="CoinContainer" type="Node2D" parent="." unique_id=1519551024]
+position = Vector2(9, 9)
 script = ExtResource("3_coins")

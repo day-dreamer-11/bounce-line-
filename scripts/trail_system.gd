@@ -27,15 +27,23 @@ var _ball_speed: float = 0.0
 # Particle system for sparkles
 var _sparkles: CPUParticles2D = null
 
+# Font
+var _font: FontFile = null
+
 
 func _ready() -> void:
 	RenderingServer.set_default_clear_color(Color(0.98, 0.98, 0.98))
+	_setup_font()
 	_create_background()
 	_stroke_scene = load("res://scenes/Stroke.tscn")
 	_create_borders()
 	_create_start_screen()
 	_setup_sparkles()
 	$Ball.fell_off_screen.connect(_on_game_over)
+
+
+func _setup_font() -> void:
+	_font = load("res://fonts/NotoSansSC-VF.ttf")
 
 
 func _create_background() -> void:
@@ -106,7 +114,8 @@ func _make_overlay_bg(canvas: CanvasLayer) -> void:
 	canvas.add_child(bg)
 
 
-func _make_shadow_label(text: String, font_size: int, main_color: Color, shadow_color: Color) -> Control:
+func _make_shadow_label(text: String, font_size: int, main_color: Color,
+		shadow_color: Color) -> Control:
 	var ctrl := Control.new()
 	ctrl.custom_minimum_size = Vector2(0, font_size * 1.4)
 
@@ -118,6 +127,8 @@ func _make_shadow_label(text: String, font_size: int, main_color: Color, shadow_
 	shadow.add_theme_color_override("font_color", shadow_color)
 	shadow.set_anchors_preset(Control.PRESET_FULL_RECT)
 	shadow.position = Vector2(2, 2)
+	if _font:
+		shadow.add_theme_font_override("font", _font)
 	ctrl.add_child(shadow)
 
 	var main := Label.new()
@@ -127,6 +138,8 @@ func _make_shadow_label(text: String, font_size: int, main_color: Color, shadow_
 	main.add_theme_font_size_override("font_size", font_size)
 	main.add_theme_color_override("font_color", main_color)
 	main.set_anchors_preset(Control.PRESET_FULL_RECT)
+	if _font:
+		main.add_theme_font_override("font", _font)
 	ctrl.add_child(main)
 
 	return ctrl
@@ -139,6 +152,8 @@ func _make_button(text: String, font_size: int, w: float, h: float) -> Button:
 	btn.add_theme_font_size_override("font_size", font_size)
 	btn.add_theme_color_override("font_color", COLOR_GOLD)
 	btn.custom_minimum_size = Vector2(w, h)
+	if _font:
+		btn.add_theme_font_override("font", _font)
 
 	# Gold border
 	const BORDER := Color(0.96, 0.82, 0.35, 0.9)
@@ -222,6 +237,8 @@ func _create_start_screen() -> void:
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle.add_theme_font_size_override("font_size", 18)
 	subtitle.add_theme_color_override("font_color", COLOR_GOLD)
+	if _font:
+		subtitle.add_theme_font_override("font", _font)
 	vbox.add_child(subtitle)
 
 	var spacer := Control.new()
